@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -48,6 +49,7 @@ public class DiscoverActivity extends Activity {
     public static final String TAG = "DiscoverActivity";
     private ConnectionsClient mConnectionsClient;
     private String connectionAuthenticationToken = "";
+    public String mEndPointId = null;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +57,7 @@ public class DiscoverActivity extends Activity {
         Log.v(TAG,"onCreate called");
         startDiscovery();
     }
-    private final PayloadCallback payloadCallback =
+    private final PayloadCallback mPayloadCallback =
             new PayloadCallback() {
                 @Override
                 public void onPayloadReceived(String endpointId, Payload payload) {
@@ -81,6 +83,7 @@ public class DiscoverActivity extends Activity {
                 @Override
                 public void onEndpointLost(String endpointId) {
                     // A previously discovered endpoint has gone away.
+                    mEndPointId = null;
                     Log.v(TAG,"A previously discovered endpoint has gone away.");
                 }
             };
@@ -115,6 +118,12 @@ public class DiscoverActivity extends Activity {
         startActivity(intent);
     }
 
+    public void acceptConnection(View view){
+        if(!mEndPointId.isEmpty()){
+            mConnectionsClient.acceptConnection(mEndPointId, mPayloadCallback);
+        }
+    }
+
     public void onEndpointFound(
             String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
         mConnectionsClient.requestConnection(
@@ -127,6 +136,7 @@ public class DiscoverActivity extends Activity {
                             public void onSuccess(Void unusedResult) {
                                 // We successfully requested a connection. Now both sides
                                 // must accept before the connection is established.
+                                Log.v(TAG, "addOnSuccessListener > onSuccess");
                             }
                         })
                 .addOnFailureListener(
@@ -147,7 +157,11 @@ public class DiscoverActivity extends Activity {
                         String endpointId, ConnectionInfo connectionInfo) {
                     // Automatically accept the connection on both sides.
                     connectionAuthenticationToken = connectionInfo.getAuthenticationToken();
-                    //mConnectionsClient.acceptConnection(endpointId, payloadCallback);
+                    EditText tokenText = findViewById(R.id.editTextAcceptConnection);
+                    tokenText.setText(connectionAuthenticationToken);
+                    mEndPointId = endpointId;
+                    Log.v(TAG,"authentication token received");
+                    //mConnectionsClient.acceptConnection(endpointId, mPayloadCallback);
                 }
 
                 @Override
@@ -155,12 +169,15 @@ public class DiscoverActivity extends Activity {
                     switch (result.getStatus().getStatusCode()) {
                         case ConnectionsStatusCodes.STATUS_OK:
                             // We're connected! Can now start sending and receiving data.
+                            Log.v(TAG,"We're connected! Can now start sending and receiving data");
                             break;
                         case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                             // The connection was rejected by one or both sides.
+                            Log.v(TAG,"The connection was rejected by one or both sides.");
                             break;
                         case ConnectionsStatusCodes.STATUS_ERROR:
                             // The connection broke before it was able to be accepted.
+                            Log.v(TAG,"The connection broke before it was able to be accepted.");
                             break;
                     }
                 }
@@ -168,7 +185,7 @@ public class DiscoverActivity extends Activity {
                 @Override
                 public void onDisconnected(String endpointId) {
                     // We've been disconnected from this endpoint. No more data can be
-                    // sent or received.
+                    Log.v(TAG,"We've been disconnected from this endpoint. No more data can be sent or received.");
                 }
             };
 
