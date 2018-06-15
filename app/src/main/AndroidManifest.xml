@@ -8,9 +8,6 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application>
-        <meta-data
-            android:name="com.google.android.nearby.messages.API_KEY"
-            android:value="AIzaSyCL-d8Ell8Errw3iPDw6LsKkZPZ-9BE8t8" />
 
         <uses-library android:name="com.google.android.things" />
 

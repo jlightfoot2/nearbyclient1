@@ -3,5 +3,6 @@
     <string name="button_start_discovery">Discover</string>
     <string name="button_stop_discovery">Stop</string>
     <string name="text_discovery_active">Discovering....</string>
-    <string name="button_accept_connection">Accept Connection</string>
+    <string name="button_request_connection">Request Connection</string>
+    <string name="button_accept_token">Trust Connection</string>
 </resources>

@@ -7,7 +7,7 @@
     tools:context=".DiscoverActivity">
 
     <EditText
-        android:id="@+id/editText"
+        android:id="@+id/editTextConnectionHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -27,10 +27,10 @@
         android:onClick="stopDiscovery"
         android:text="@string/button_stop_discovery"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextAcceptConnection" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextConnectionStatus" />
 
     <EditText
-        android:id="@+id/editTextAcceptConnection"
+        android:id="@+id/editTextConnectionStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -39,16 +39,27 @@
         android:inputType="textPersonName"
         android:text="Name"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextConnectionHeader" />
 
     <Button
-        android:id="@+id/button_connection_accept"
+        android:id="@+id/button_connection_request"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="28dp"
         android:layout_marginTop="8dp"
-        android:onClick="acceptConnection"
-        android:text="@string/button_accept_connection"
+        android:onClick="requestConnection"
+        android:text="@string/button_request_connection"
         app:layout_constraintStart_toEndOf="@+id/button4"
-        app:layout_constraintTop_toBottomOf="@+id/editTextAcceptConnection" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextConnectionStatus" />
+
+    <Button
+        android:id="@+id/buttonEndpointAuthenticated"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:onClick="acceptConnection"
+        android:text="@string/button_accept_token"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button4" />
 </android.support.constraint.ConstraintLayout>

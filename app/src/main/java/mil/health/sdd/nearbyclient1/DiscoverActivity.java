@@ -77,6 +77,13 @@ public class DiscoverActivity extends Activity {
                 public void onEndpointFound(
                         String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
                     // An endpoint was found!
+                    EditText headerText = findViewById(R.id.editTextConnectionHeader);
+                    headerText.setText("Endpoint Found!");
+
+                    mEndPointId = endpointId;
+                    EditText tokenText = findViewById(R.id.editTextConnectionStatus);
+                    tokenText.setText("Endpoint: " + mEndPointId);
+                    //onEndpointFound(endpointId, discoveredEndpointInfo); causes infinite loop
                     Log.v(TAG,"An endpoint was found!");
                 }
 
@@ -124,8 +131,12 @@ public class DiscoverActivity extends Activity {
         }
     }
 
-    public void onEndpointFound(
-            String endpointId, DiscoveredEndpointInfo discoveredEndpointInfo) {
+    public void requestConnection(View view){
+        sendConnectionRequest(mEndPointId);
+    }
+
+    public void sendConnectionRequest(
+            String endpointId) {
         mConnectionsClient.requestConnection(
                 SERVICE_ID,
                 endpointId,
@@ -157,9 +168,13 @@ public class DiscoverActivity extends Activity {
                         String endpointId, ConnectionInfo connectionInfo) {
                     // Automatically accept the connection on both sides.
                     connectionAuthenticationToken = connectionInfo.getAuthenticationToken();
-                    EditText tokenText = findViewById(R.id.editTextAcceptConnection);
-                    tokenText.setText(connectionAuthenticationToken);
-                    mEndPointId = endpointId;
+                    EditText tokenText = findViewById(R.id.editTextConnectionStatus);
+                    tokenText.setText("Token: " + connectionAuthenticationToken);
+
+
+                    EditText headerText = findViewById(R.id.editTextConnectionHeader);
+                    headerText.setText("Please verify token");
+
                     Log.v(TAG,"authentication token received");
                     //mConnectionsClient.acceptConnection(endpointId, mPayloadCallback);
                 }
