@@ -18,10 +18,25 @@
         app:layout_constraintVertical_bias="0.268" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/buttonDiscover"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:onClick="discoverCA"
-        android:text="@string/button_start_discovery" />
+        android:text="@string/button_start_discovery"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonManagePKI"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:onClick="managePKI"
+        android:text="@string/button_manage_pki"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonDiscover" />
 
 </android.support.constraint.ConstraintLayout>

@@ -5,4 +5,10 @@
     <string name="text_discovery_active">Discovering....</string>
     <string name="button_request_connection">Request Connection</string>
     <string name="button_accept_token">Trust Connection</string>
+    <string name="pki_public_key_name">pki_public_key</string>
+    <string name="pki_private_key_name">pki_private_key</string>
+    <string name="pki_preferences_filename">pki_preferences</string>
+    <string name="button_manage_pki">Manage PKI</string>
+    <string name="pki_setup_isready_name">pki_setup_isready</string>
+    <string name="general_preferences_filename">general_preferences</string>
 </resources>
