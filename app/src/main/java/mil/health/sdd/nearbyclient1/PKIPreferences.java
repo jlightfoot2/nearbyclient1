@@ -5,7 +5,9 @@ import android.content.SharedPreferences;
 import android.util.Base64;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
+import java.io.IOException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -22,10 +24,12 @@ import java.security.spec.X509EncodedKeySpec;
 public class PKIPreferences {
     private Context context;
     private SharedPreferences sharedPreferences;
-    private String caPrivateKeyPref;
-    private String caPublicKeyPref;
-    public byte[] caPrivateKeyBytes;
-    public byte[] caPublicKeyBytes;
+    private String pkiPrivateKeyPref;
+    private String pkiPublicKeyPref;
+    private String pkiCSRPref;
+    public byte[] pkiPrivateKeyBytes;
+    public byte[] pkiPublicKeyBytes;
+    public byte[] pkiCSRBytes;
     private static final int BASE64_CONF = Base64.NO_WRAP;
     public PKIPreferences(Context context,String share_prefs_filename){
         this.context = context;
@@ -38,35 +42,42 @@ public class PKIPreferences {
     }
 
     private void retrieveRawCerts(){
-        caPrivateKeyPref = sharedPreferences.getString(context.getString(R.string.pki_private_key_name),"");
-        caPublicKeyPref = sharedPreferences.getString(context.getString(R.string.pki_public_key_name),"");
+        pkiPrivateKeyPref = sharedPreferences.getString(context.getString(R.string.pki_private_key_name),"");
+        pkiPublicKeyPref = sharedPreferences.getString(context.getString(R.string.pki_public_key_name),"");
+        pkiCSRPref = sharedPreferences.getString(context.getString(R.string.pki_csr_key_name),"");
         if(isSetup()){
             this.decodeCerts();
         }
     }
 
     public boolean isSetup(){
-        return !(caPrivateKeyPref.isEmpty() || caPublicKeyPref.isEmpty());
+        return !(pkiPrivateKeyPref.isEmpty() || pkiPublicKeyPref.isEmpty() || pkiCSRPref.isEmpty());
     }
 
-    public void store(KeyPair caKeyPair) throws CertificateEncodingException {
+    public void store(KeyPair caKeyPair,PKCS10CertificationRequest csr) throws CertificateEncodingException, IOException {
         SharedPreferences.Editor pkiEditor = sharedPreferences.edit();
         pkiEditor.putString(context.getString(R.string.pki_public_key_name), Base64.encodeToString(caKeyPair.getPublic().getEncoded(), BASE64_CONF));
         pkiEditor.putString(context.getString(R.string.pki_private_key_name), Base64.encodeToString(caKeyPair.getPrivate().getEncoded(), BASE64_CONF));
+        pkiEditor.putString(context.getString(R.string.pki_csr_key_name), Base64.encodeToString(csr.getEncoded(), BASE64_CONF));
         pkiEditor.commit();
         this.retrieveRawCerts();
     }
 
     private void decodeCerts(){
-        caPrivateKeyBytes  = Base64.decode(caPrivateKeyPref, BASE64_CONF);
-        caPublicKeyBytes  = Base64.decode(caPublicKeyPref, BASE64_CONF);
+        pkiPrivateKeyBytes = Base64.decode(pkiPrivateKeyPref, BASE64_CONF);
+        pkiPublicKeyBytes = Base64.decode(pkiPublicKeyPref, BASE64_CONF);
+        pkiCSRBytes = Base64.decode(pkiCSRPref, BASE64_CONF);
     }
 
     public KeyPair getKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
         KeyFactory kf = KeyFactory.getInstance("RSA",BouncyCastleProvider.PROVIDER_NAME);
-        PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(caPrivateKeyBytes));
-        PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(caPublicKeyBytes));
+        PrivateKey privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(pkiPrivateKeyBytes));
+        PublicKey publicKey = kf.generatePublic(new X509EncodedKeySpec(pkiPublicKeyBytes));
         return new KeyPair(publicKey,privateKey);
+    }
+
+    public PKCS10CertificationRequest getCSR() throws IOException {
+      return new PKCS10CertificationRequest(pkiCSRBytes);
     }
 
 }

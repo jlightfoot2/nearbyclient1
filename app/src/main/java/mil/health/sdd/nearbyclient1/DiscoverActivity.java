@@ -1,7 +1,9 @@
 package mil.health.sdd.nearbyclient1;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -23,6 +25,8 @@ import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+
+import java.io.IOException;
 
 /**
  * Skeleton of an Android Things activity.
@@ -50,13 +54,21 @@ public class DiscoverActivity extends Activity {
     private ConnectionsClient mConnectionsClient;
     private String connectionAuthenticationToken = "";
     public String mEndPointId = null;
+    private static PKIPreferences pkPrefs;
+    private static SharedPreferences generalPrefs;
+    private DiscoverActivity activityInstance;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_discover);
         Log.v(TAG,"onCreate called");
         startDiscovery();
+        generalPrefs = getSharedPreferences(getString(R.string.general_preferences_filename), Context.MODE_PRIVATE);
+        activityInstance = this;
+
     }
+
     private final PayloadCallback mPayloadCallback =
             new PayloadCallback() {
                 @Override
@@ -66,9 +78,9 @@ public class DiscoverActivity extends Activity {
 
                 @Override
                 public void onPayloadTransferUpdate(String endpointId, PayloadTransferUpdate update) {
-//                    if (update.getStatus() == Status.SUCCESS && myChoice != null && opponentChoice != null) {
-//                        finishRound();
-//                    }
+                    if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                        //transfercomplete
+                    }
                 }
             };
     private final EndpointDiscoveryCallback mEndpointDiscoveryCallback =
@@ -185,6 +197,19 @@ public class DiscoverActivity extends Activity {
                         case ConnectionsStatusCodes.STATUS_OK:
                             // We're connected! Can now start sending and receiving data.
                             Log.v(TAG,"We're connected! Can now start sending and receiving data");
+                            pkPrefs = new PKIPreferences(activityInstance,getString(R.string.pki_preferences_filename));
+
+                            if(pkPrefs.isSetup()){
+                                Payload csrPayload = null;
+                                try {
+                                    csrPayload= Payload.fromBytes(pkPrefs.getCSR().getEncoded());
+                                    Nearby.getConnectionsClient(activityInstance).sendPayload(endpointId, csrPayload);
+                                } catch (IOException e) {
+                                    Log.e(TAG,"could not retrieve CSR",e);
+                                    Nearby.getConnectionsClient(activityInstance).stopAllEndpoints();
+                                }
+
+                            }
                             break;
                         case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                             // The connection was rejected by one or both sides.
