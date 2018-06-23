@@ -24,7 +24,6 @@ import java.security.cert.CertificateEncodingException;
 public class PKIActivity extends Activity {
     private static final String TAG = "PKIActivity";
 
-    private static final String CA_KEY_ALIAS = "andoidIotCA";
     private static final String CA_CN ="android-dha-client1.local";
     private static final String CA_CN_PATTERN ="CN=%s, O=DHA, OU=SDD";
     private static PKIPreferences pkPrefs;
@@ -89,7 +88,7 @@ public class PKIActivity extends Activity {
         PKCS10CertificationRequest csr = CSRHelper.generateCSR(kp,cnString);
 
         PKIPreferences pkPrefs = new PKIPreferences(this,getString(R.string.pki_preferences_filename));
-        pkPrefs.store(kp);
+        pkPrefs.store(kp,csr);
         SharedPreferences.Editor genPrefEditor = generalPrefs.edit();
         if(pkPrefs.isSetup()){
             genPrefEditor.putBoolean(getString(R.string.pki_setup_isready_name),true);

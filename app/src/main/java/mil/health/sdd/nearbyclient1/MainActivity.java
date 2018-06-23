@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 /**
  * Skeleton of an Android Things activity.
@@ -39,6 +40,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         generalPrefs = getSharedPreferences(getString(R.string.general_preferences_filename), Context.MODE_PRIVATE);
         pkiReady = generalPrefs.getBoolean(getString(R.string.pki_setup_isready_name),false);
+
         Button discoverButton = findViewById(R.id.buttonDiscover);
         if(pkiReady){
             discoverButton.setVisibility(View.VISIBLE);
@@ -55,6 +57,20 @@ public class MainActivity extends Activity {
     public void managePKI(View view){
         Intent mPKIIntent = new Intent(this,PKIActivity.class);
         startActivity(mPKIIntent);
+    }
+    private void notifyUser(String msg){
+
+        Context context = getApplicationContext();
+        CharSequence text = msg;
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+    }
+    public void deleteCerts(View view){
+        PKIPreferences pkPrefs = new PKIPreferences(this,getString(R.string.pki_preferences_filename));
+        pkPrefs.deleteAll();
+        notifyUser("Certs and Keys deleted");
     }
 
     @Override

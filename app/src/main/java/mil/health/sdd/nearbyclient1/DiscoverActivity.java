@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -26,7 +27,15 @@ import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.NoSuchProviderException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 /**
  * Skeleton of an Android Things activity.
@@ -57,6 +66,8 @@ public class DiscoverActivity extends Activity {
     private static PKIPreferences pkPrefs;
     private static SharedPreferences generalPrefs;
     private DiscoverActivity activityInstance;
+    private byte[] x509SignedCertBytes = null;
+    private long csrPayloadId = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,18 +79,45 @@ public class DiscoverActivity extends Activity {
         activityInstance = this;
 
     }
+    private void notifyUser(String msg){
 
+        Context context = getApplicationContext();
+        CharSequence text = msg;
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+    }
     private final PayloadCallback mPayloadCallback =
             new PayloadCallback() {
                 @Override
-                public void onPayloadReceived(String endpointId, Payload payload) {
+                public void onPayloadReceived(String remoteEndpointId, Payload payload) {
 //                    opponentChoice = GameChoice.valueOf(new String(payload.asBytes(), UTF_8));
+                    Log.v(TAG,"onPayloadReceived");
+                    x509SignedCertBytes = payload.asBytes();
+                    try {
+                        CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastlePQCProvider.PROVIDER_NAME);
+                        InputStream in = new ByteArrayInputStream(x509SignedCertBytes);
+                        X509Certificate cert = (X509Certificate) certFactory.generateCertificate(in);
+                        pkPrefs.store(cert);
+                        notifyUser("x509 returned and stored");
+                        pkPrefs.getSignedCert();
+                        notifyUser("x509 retrieved");
+                    } catch (CertificateException e) {
+
+                        Log.e(TAG,"Payload CertificateException",e);
+                    } catch (NoSuchProviderException e) {
+                        Log.e(TAG,"Payload NoSuchProviderException",e);
+                    }
                 }
 
                 @Override
-                public void onPayloadTransferUpdate(String endpointId, PayloadTransferUpdate update) {
-                    if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
-                        //transfercomplete
+                public void onPayloadTransferUpdate(String sendingEndpointId, PayloadTransferUpdate update) {
+
+                    if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS && update.getPayloadId() == csrPayloadId) {
+                        notifyUser("CSR Sent " + update.getTotalBytes());
+                    } else {
+                        notifyUser("Signed Cert returned " + update.getTotalBytes());
                     }
                 }
             };
@@ -202,10 +240,13 @@ public class DiscoverActivity extends Activity {
                             if(pkPrefs.isSetup()){
                                 Payload csrPayload = null;
                                 try {
+                                    Log.v(TAG,"client: Sending CSR bytes to CA");
                                     csrPayload= Payload.fromBytes(pkPrefs.getCSR().getEncoded());
+                                    csrPayloadId = csrPayload.getId();
                                     Nearby.getConnectionsClient(activityInstance).sendPayload(endpointId, csrPayload);
+                                    Log.v(TAG,"CSR bytes send to CA");
                                 } catch (IOException e) {
-                                    Log.e(TAG,"could not retrieve CSR",e);
+                                    Log.e(TAG,"could not retrieve CSR from preferences",e);
                                     Nearby.getConnectionsClient(activityInstance).stopAllEndpoints();
                                 }
 
