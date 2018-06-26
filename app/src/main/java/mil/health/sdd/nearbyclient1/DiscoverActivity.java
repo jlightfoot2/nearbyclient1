@@ -27,7 +27,7 @@ import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -60,7 +60,6 @@ public class DiscoverActivity extends Activity {
     public static final String SERVICE_ID = "mil.health.sdd.nearbyclient2.CA_SYSTEM";
     private static final Strategy STRATEGY = Strategy.P2P_STAR;
     public static final String TAG = "DiscoverActivity";
-    private ConnectionsClient mConnectionsClient;
     private String connectionAuthenticationToken = "";
     public String mEndPointId = null;
     private static PKIPreferences pkPrefs;
@@ -68,6 +67,7 @@ public class DiscoverActivity extends Activity {
     private DiscoverActivity activityInstance;
     private byte[] x509SignedCertBytes = null;
     private long csrPayloadId = 0;
+    private ConnectionsClient mConnectionsClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +77,7 @@ public class DiscoverActivity extends Activity {
         startDiscovery();
         generalPrefs = getSharedPreferences(getString(R.string.general_preferences_filename), Context.MODE_PRIVATE);
         activityInstance = this;
+        mConnectionsClient = Nearby.getConnectionsClient(this);
 
     }
     private void notifyUser(String msg){
@@ -96,12 +97,14 @@ public class DiscoverActivity extends Activity {
                     Log.v(TAG,"onPayloadReceived");
                     x509SignedCertBytes = payload.asBytes();
                     try {
-                        CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastlePQCProvider.PROVIDER_NAME);
+                        CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
                         InputStream in = new ByteArrayInputStream(x509SignedCertBytes);
                         X509Certificate cert = (X509Certificate) certFactory.generateCertificate(in);
                         pkPrefs.store(cert);
                         notifyUser("x509 returned and stored");
+                        Log.v(TAG,"x509 returned and stored");
                         pkPrefs.getSignedCert();
+                        Log.v(TAG,"x509 retrieved");
                         notifyUser("x509 retrieved");
                     } catch (CertificateException e) {
 
@@ -146,7 +149,6 @@ public class DiscoverActivity extends Activity {
             };
 
     private void startDiscovery() {
-        mConnectionsClient = Nearby.getConnectionsClient(this);
         mConnectionsClient.startDiscovery(
                 SERVICE_ID,
                 mEndpointDiscoveryCallback,
@@ -170,13 +172,28 @@ public class DiscoverActivity extends Activity {
                         });
     }
 
+    @Override
+    protected void onStop() {
+        stopNearbyDiscover();
+        Log.v(TAG,"onStop called in Activity");
+        super.onStop();
+    }
+
     public void stopDiscovery(View view){
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }
 
+    public void stopNearbyDiscover(){
+        mConnectionsClient.stopDiscovery();
+        mConnectionsClient.stopAllEndpoints();
+    }
+
     public void acceptConnection(View view){
+        Log.v(TAG,"User clicks to accept connection ");
+        mConnectionsClient.stopDiscovery();
         if(!mEndPointId.isEmpty()){
+            Log.v(TAG,"User accepts advertising endpoint " + mEndPointId);
             mConnectionsClient.acceptConnection(mEndPointId, mPayloadCallback);
         }
     }
@@ -240,14 +257,15 @@ public class DiscoverActivity extends Activity {
                             if(pkPrefs.isSetup()){
                                 Payload csrPayload = null;
                                 try {
+                                    pkPrefs = new PKIPreferences(activityInstance,getString(R.string.pki_preferences_filename));
                                     Log.v(TAG,"client: Sending CSR bytes to CA");
                                     csrPayload= Payload.fromBytes(pkPrefs.getCSR().getEncoded());
                                     csrPayloadId = csrPayload.getId();
-                                    Nearby.getConnectionsClient(activityInstance).sendPayload(endpointId, csrPayload);
+                                    mConnectionsClient.sendPayload(mEndPointId, csrPayload);
                                     Log.v(TAG,"CSR bytes send to CA");
                                 } catch (IOException e) {
                                     Log.e(TAG,"could not retrieve CSR from preferences",e);
-                                    Nearby.getConnectionsClient(activityInstance).stopAllEndpoints();
+                                    mConnectionsClient.stopAllEndpoints();
                                 }
 
                             }

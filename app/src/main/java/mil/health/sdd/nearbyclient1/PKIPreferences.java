@@ -6,7 +6,6 @@ import android.util.Base64;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -109,7 +108,7 @@ public class PKIPreferences {
     }
 
     public X509Certificate getSignedCert() throws CertificateException, NoSuchProviderException {
-        CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastlePQCProvider.PROVIDER_NAME);
+        CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
         InputStream in = new ByteArrayInputStream(pkiX509CertBytes);
         return (X509Certificate) certFactory.generateCertificate(in);
     }
