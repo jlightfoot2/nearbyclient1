@@ -1,4 +1,4 @@
-package mil.health.sdd.nearbyclient1;
+package mil.health.sdd.nearbyclient1.activities;
 
 import android.app.Activity;
 import android.content.Context;
@@ -20,6 +20,11 @@ import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.CertificateEncodingException;
+
+import mil.health.sdd.nearbyclient1.helper.CSRHelper;
+import mil.health.sdd.nearbyclient1.helper.PKIHelper;
+import mil.health.sdd.nearbyclient1.PKIPreferences;
+import mil.health.sdd.nearbyclient1.R;
 
 public class PKIActivity extends Activity {
     private static final String TAG = "PKIActivity";

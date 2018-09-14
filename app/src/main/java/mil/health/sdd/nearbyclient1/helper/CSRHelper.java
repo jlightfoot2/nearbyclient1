@@ -1,4 +1,4 @@
-package mil.health.sdd.nearbyclient1;
+package mil.health.sdd.nearbyclient1.helper;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;

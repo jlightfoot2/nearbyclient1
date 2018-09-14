@@ -1,4 +1,4 @@
-package mil.health.sdd.nearbyclient1;
+package mil.health.sdd.nearbyclient1.helper;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;

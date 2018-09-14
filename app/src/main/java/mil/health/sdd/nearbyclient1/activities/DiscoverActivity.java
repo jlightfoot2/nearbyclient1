@@ -1,4 +1,4 @@
-package mil.health.sdd.nearbyclient1;
+package mil.health.sdd.nearbyclient1.activities;
 
 import android.app.Activity;
 import android.content.Context;
@@ -37,6 +37,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
+import mil.health.sdd.nearbyclient1.PKIPreferences;
+import mil.health.sdd.nearbyclient1.R;
+
 /**
  * Skeleton of an Android Things activity.
  * <p>
@@ -74,12 +77,13 @@ public class DiscoverActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_discover);
         Log.v(TAG,"onCreate called");
-        startDiscovery();
+
         generalPrefs = getSharedPreferences(getString(R.string.general_preferences_filename), Context.MODE_PRIVATE);
         activityInstance = this;
         mConnectionsClient = Nearby.getConnectionsClient(this);
-
+        startDiscovery();
     }
+
     private void notifyUser(String msg){
 
         Context context = getApplicationContext();

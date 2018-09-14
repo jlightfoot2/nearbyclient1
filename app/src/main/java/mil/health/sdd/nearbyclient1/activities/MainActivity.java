@@ -1,4 +1,4 @@
-package mil.health.sdd.nearbyclient1;
+package mil.health.sdd.nearbyclient1.activities;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,6 +9,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import mil.health.sdd.nearbyclient1.PKIPreferences;
+import mil.health.sdd.nearbyclient1.R;
 
 /**
  * Skeleton of an Android Things activity.
@@ -71,6 +74,11 @@ public class MainActivity extends Activity {
         PKIPreferences pkPrefs = new PKIPreferences(this,getString(R.string.pki_preferences_filename));
         pkPrefs.deleteAll();
         notifyUser("Certs and Keys deleted");
+        SharedPreferences generalPrefs = getSharedPreferences(getString(R.string.general_preferences_filename), Context.MODE_PRIVATE);
+        SharedPreferences.Editor genPrefEditor = generalPrefs.edit();
+        genPrefEditor.putBoolean(getString(R.string.pki_setup_isready_name),false);
+        Button discoverButton = findViewById(R.id.buttonDiscover);
+        discoverButton.setVisibility(View.INVISIBLE);
     }
 
     @Override
