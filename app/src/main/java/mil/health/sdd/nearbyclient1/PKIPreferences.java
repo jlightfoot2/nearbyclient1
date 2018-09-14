@@ -38,7 +38,7 @@ public class PKIPreferences {
     public byte[] pkiPublicKeyBytes;
     public byte[] pkiCSRBytes;
     public byte[] pkiX509CertBytes;
-    public byte[] pkiXCaCertBytes;
+    public byte[] pkiCaCertBytes;
     private static final int BASE64_CONF = Base64.NO_WRAP;
     public PKIPreferences(Context context,String share_prefs_filename){
         this.context = context;
@@ -105,7 +105,7 @@ public class PKIPreferences {
         pkiPublicKeyBytes = Base64.decode(pkiPublicKeyPref, BASE64_CONF);
         pkiCSRBytes = Base64.decode(pkiCSRPref, BASE64_CONF);
         pkiX509CertBytes = Base64.decode(pkiX509CertPref, BASE64_CONF);
-        pkiXCaCertBytes = Base64.decode(pkiCaCertPref, BASE64_CONF);
+        pkiCaCertBytes = Base64.decode(pkiCaCertPref, BASE64_CONF);
     }
 
     public KeyPair getKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
@@ -127,7 +127,7 @@ public class PKIPreferences {
 
     public X509Certificate getCaCert() throws CertificateException, NoSuchProviderException {
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
-        InputStream in = new ByteArrayInputStream(pkiXCaCertBytes);
+        InputStream in = new ByteArrayInputStream(pkiCaCertBytes);
         return (X509Certificate) certFactory.generateCertificate(in);
     }
 

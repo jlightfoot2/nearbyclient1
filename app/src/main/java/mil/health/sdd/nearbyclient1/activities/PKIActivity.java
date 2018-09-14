@@ -1,10 +1,13 @@
 package mil.health.sdd.nearbyclient1.activities;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
 
@@ -21,12 +24,13 @@ import java.security.Provider;
 import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 
-import mil.health.sdd.nearbyclient1.helper.CSRHelper;
-import mil.health.sdd.nearbyclient1.helper.PKIHelper;
 import mil.health.sdd.nearbyclient1.PKIPreferences;
 import mil.health.sdd.nearbyclient1.R;
+import mil.health.sdd.nearbyclient1.fragments.X509CertEditFragment;
+import mil.health.sdd.nearbyclient1.helper.CSRHelper;
+import mil.health.sdd.nearbyclient1.helper.PKIHelper;
 
-public class PKIActivity extends Activity {
+public class PKIActivity extends AppCompatActivity {
     private static final String TAG = "PKIActivity";
 
     private static final String CA_CN ="android-dha-client1.local";
@@ -58,6 +62,12 @@ public class PKIActivity extends Activity {
                 e.printStackTrace();
             }
         } else {
+            FragmentManager fm = getSupportFragmentManager();
+            Fragment certEditFragment = new X509CertEditFragment();
+            FragmentTransaction ft1 = fm.beginTransaction();
+            ft1.add(R.id.fragmentCaCertContainer,certEditFragment);
+            ft1.commit();
+
             notifyUser("Certs already setup");
         }
     }

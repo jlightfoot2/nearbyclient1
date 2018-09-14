@@ -74,7 +74,7 @@ public class DiscoverActivity extends Activity {
     private ConnectionsClient mConnectionsClient;
 
     private boolean certReceived = false;
-    private boolean caReceived = false;
+  
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
