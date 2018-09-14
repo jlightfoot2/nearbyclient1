@@ -69,8 +69,12 @@ public class DiscoverActivity extends Activity {
     private static SharedPreferences generalPrefs;
     private DiscoverActivity activityInstance;
     private byte[] x509SignedCertBytes = null;
+    private byte[] caCertificateBytes = null;
     private long csrPayloadId = 0;
     private ConnectionsClient mConnectionsClient;
+
+    private boolean certReceived = false;
+    private boolean caReceived = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,23 +103,45 @@ public class DiscoverActivity extends Activity {
                 public void onPayloadReceived(String remoteEndpointId, Payload payload) {
 //                    opponentChoice = GameChoice.valueOf(new String(payload.asBytes(), UTF_8));
                     Log.v(TAG,"onPayloadReceived");
-                    x509SignedCertBytes = payload.asBytes();
-                    try {
-                        CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
-                        InputStream in = new ByteArrayInputStream(x509SignedCertBytes);
-                        X509Certificate cert = (X509Certificate) certFactory.generateCertificate(in);
-                        pkPrefs.store(cert);
-                        notifyUser("x509 returned and stored");
-                        Log.v(TAG,"x509 returned and stored");
-                        pkPrefs.getSignedCert();
-                        Log.v(TAG,"x509 retrieved");
-                        notifyUser("x509 retrieved");
-                    } catch (CertificateException e) {
+                    if(!certReceived){
+                        x509SignedCertBytes = payload.asBytes();
+                        try {
+                            CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
+                            InputStream in = new ByteArrayInputStream(x509SignedCertBytes);
+                            X509Certificate cert = (X509Certificate) certFactory.generateCertificate(in);
+                            pkPrefs.store(cert);
+                            notifyUser("x509 returned and stored");
+                            Log.v(TAG,"x509 returned and stored");
+                            pkPrefs.getSignedCert();
+                            Log.v(TAG,"x509 retrieved");
+                            notifyUser("x509 retrieved");
+                        } catch (CertificateException e) {
 
-                        Log.e(TAG,"Payload CertificateException",e);
-                    } catch (NoSuchProviderException e) {
-                        Log.e(TAG,"Payload NoSuchProviderException",e);
+                            Log.e(TAG,"Payload CertificateException",e);
+                        } catch (NoSuchProviderException e) {
+                            Log.e(TAG,"Payload NoSuchProviderException",e);
+                        }
+                    } else {
+                        caCertificateBytes = payload.asBytes();
+                        //TODO store ca in prefrences to be used later
+                        try {
+                            CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
+                            InputStream in = new ByteArrayInputStream(caCertificateBytes);
+                            X509Certificate cert = (X509Certificate) certFactory.generateCertificate(in);
+                            pkPrefs.storeCa(cert);
+                            notifyUser("CA Cert returned and stored");
+                            Log.v(TAG,"CA Cert returned and stored");
+                            pkPrefs.getCaCert();
+                            Log.v(TAG,"CA Cert retrieved");
+                            notifyUser("CA Cert retrieved");
+                        } catch (CertificateException e) {
+
+                            Log.e(TAG,"Payload CertificateException",e);
+                        } catch (NoSuchProviderException e) {
+                            Log.e(TAG,"Payload NoSuchProviderException",e);
+                        }
                     }
+
                 }
 
                 @Override
@@ -123,8 +149,11 @@ public class DiscoverActivity extends Activity {
 
                     if (update.getStatus() == PayloadTransferUpdate.Status.SUCCESS && update.getPayloadId() == csrPayloadId) {
                         notifyUser("CSR Sent " + update.getTotalBytes());
-                    } else {
+                    } else if(!certReceived && update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
                         notifyUser("Signed Cert returned " + update.getTotalBytes());
+                        certReceived = true;
+                    } else if(update.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                        notifyUser("CA Cert Returned " + update.getTotalBytes());
                     }
                 }
             };
@@ -265,6 +294,7 @@ public class DiscoverActivity extends Activity {
                                     Log.v(TAG,"client: Sending CSR bytes to CA");
                                     csrPayload= Payload.fromBytes(pkPrefs.getCSR().getEncoded());
                                     csrPayloadId = csrPayload.getId();
+                                    certReceived = false;
                                     mConnectionsClient.sendPayload(mEndPointId, csrPayload);
                                     Log.v(TAG,"CSR bytes send to CA");
                                 } catch (IOException e) {

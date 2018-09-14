@@ -25,7 +25,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-
+//TODO encrypt private key
 public class PKIPreferences {
     private Context context;
     private SharedPreferences sharedPreferences;
@@ -33,10 +33,12 @@ public class PKIPreferences {
     private String pkiPublicKeyPref;
     private String pkiCSRPref;
     private String pkiX509CertPref;
+    private String pkiCaCertPref;
     public byte[] pkiPrivateKeyBytes;
     public byte[] pkiPublicKeyBytes;
     public byte[] pkiCSRBytes;
     public byte[] pkiX509CertBytes;
+    public byte[] pkiXCaCertBytes;
     private static final int BASE64_CONF = Base64.NO_WRAP;
     public PKIPreferences(Context context,String share_prefs_filename){
         this.context = context;
@@ -53,6 +55,7 @@ public class PKIPreferences {
         pkiPublicKeyPref = sharedPreferences.getString(context.getString(R.string.pki_public_key_name),"");
         pkiCSRPref = sharedPreferences.getString(context.getString(R.string.pki_csr_key_name),"");
         pkiX509CertPref = sharedPreferences.getString(context.getString(R.string.pki_x509_signed_cert_name),"");
+        pkiCaCertPref = sharedPreferences.getString(context.getString(R.string.pki_ca_cert_name),"");
         if(isSetup()){
             this.decodeCerts();
         }
@@ -62,7 +65,7 @@ public class PKIPreferences {
         return !(pkiPrivateKeyPref.isEmpty() || pkiPublicKeyPref.isEmpty() || pkiCSRPref.isEmpty());
     }
 
-    public void store(KeyPair caKeyPair,PKCS10CertificationRequest csr) throws CertificateEncodingException, IOException {
+    public void store(KeyPair caKeyPair,PKCS10CertificationRequest csr) throws  IOException {
         SharedPreferences.Editor pkiEditor = sharedPreferences.edit();
         pkiEditor.putString(context.getString(R.string.pki_public_key_name), Base64.encodeToString(caKeyPair.getPublic().getEncoded(), BASE64_CONF));
         pkiEditor.putString(context.getString(R.string.pki_private_key_name), Base64.encodeToString(caKeyPair.getPrivate().getEncoded(), BASE64_CONF));
@@ -78,12 +81,20 @@ public class PKIPreferences {
         this.retrieveRawCerts();
     }
 
+    public void storeCa(X509Certificate signedCert) throws CertificateEncodingException {
+        SharedPreferences.Editor pkiEditor = sharedPreferences.edit();
+        pkiEditor.putString(context.getString(R.string.pki_ca_cert_name), Base64.encodeToString(signedCert.getEncoded(), BASE64_CONF));
+        pkiEditor.commit();
+        this.retrieveRawCerts();
+    }
+
     public void deleteAll(){
         SharedPreferences.Editor pkiEditor = sharedPreferences.edit();
         pkiEditor.putString(context.getString(R.string.pki_public_key_name), "");
         pkiEditor.putString(context.getString(R.string.pki_private_key_name), "");
         pkiEditor.putString(context.getString(R.string.pki_csr_key_name), "");
         pkiEditor.putString(context.getString(R.string.pki_x509_signed_cert_name),"");
+        pkiEditor.putString(context.getString(R.string.pki_ca_cert_name),"");
 
         pkiEditor.commit();
         this.retrieveRawCerts();
@@ -94,6 +105,7 @@ public class PKIPreferences {
         pkiPublicKeyBytes = Base64.decode(pkiPublicKeyPref, BASE64_CONF);
         pkiCSRBytes = Base64.decode(pkiCSRPref, BASE64_CONF);
         pkiX509CertBytes = Base64.decode(pkiX509CertPref, BASE64_CONF);
+        pkiXCaCertBytes = Base64.decode(pkiCaCertPref, BASE64_CONF);
     }
 
     public KeyPair getKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
@@ -110,6 +122,12 @@ public class PKIPreferences {
     public X509Certificate getSignedCert() throws CertificateException, NoSuchProviderException {
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
         InputStream in = new ByteArrayInputStream(pkiX509CertBytes);
+        return (X509Certificate) certFactory.generateCertificate(in);
+    }
+
+    public X509Certificate getCaCert() throws CertificateException, NoSuchProviderException {
+        CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
+        InputStream in = new ByteArrayInputStream(pkiXCaCertBytes);
         return (X509Certificate) certFactory.generateCertificate(in);
     }
 

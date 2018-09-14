@@ -13,4 +13,5 @@
     <string name="general_preferences_filename">general_preferences</string>
     <string name="pki_csr_key_name">pki_csr_key</string>
     <string name="pki_x509_signed_cert_name">pki_x509_signed_cert</string>
+    <string name="pki_ca_cert_name">pki_ca_cert</string>
 </resources>
