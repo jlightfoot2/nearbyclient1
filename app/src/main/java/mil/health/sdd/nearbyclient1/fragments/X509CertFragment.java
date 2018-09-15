@@ -18,7 +18,7 @@ import mil.health.sdd.nearbyclient1.R;
  * A simple {@link Fragment} subclass.
  */
 public class X509CertFragment extends Fragment {
-    CaCertificateListener mCallback;
+    CertificateListener mCallback;
     CertInfo certInfo;
 
     public X509CertFragment() {
@@ -31,10 +31,10 @@ public class X509CertFragment extends Fragment {
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
         try {
-            mCallback = (CaCertificateListener) context;
+            mCallback = (CertificateListener) context;
         } catch (ClassCastException e) {
             throw new ClassCastException(context.toString()
-                    + " must implement OnHeadlineSelectedListener");
+                    + " must implement CertificateListener");
         }
     }
 
@@ -81,7 +81,7 @@ public class X509CertFragment extends Fragment {
         this.certInfo = certInfo;
     }
 
-    public interface CaCertificateListener {
+    public interface CertificateListener {
         public void onClickDelete();
     }
 

@@ -3,7 +3,12 @@ package mil.health.sdd.nearbyclient1;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
+import android.util.Log;
 
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 
@@ -14,6 +19,7 @@ import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.PublicKey;
@@ -39,6 +45,7 @@ public class PKIPreferences {
     public byte[] pkiCSRBytes;
     public byte[] pkiX509CertBytes;
     public byte[] pkiCaCertBytes;
+    public static String TAG = "PKIPreferences";
     private static final int BASE64_CONF = Base64.NO_WRAP;
     public PKIPreferences(Context context,String share_prefs_filename){
         this.context = context;
@@ -119,16 +126,58 @@ public class PKIPreferences {
       return new PKCS10CertificationRequest(pkiCSRBytes);
     }
 
-    public X509Certificate getSignedCert() throws CertificateException, NoSuchProviderException {
-        CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
+    public X509Certificate getSignedCert()  {
+        CertificateFactory certFactory = null;
+        try {
+            certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
+            e.printStackTrace();
+        }
+        if(certFactory == null){
+            return null;
+        }
         InputStream in = new ByteArrayInputStream(pkiX509CertBytes);
-        return (X509Certificate) certFactory.generateCertificate(in);
+        try {
+            return (X509Certificate) certFactory.generateCertificate(in);
+        } catch (CertificateException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public X509Certificate getCaCert() throws CertificateException, NoSuchProviderException {
         CertificateFactory certFactory = CertificateFactory.getInstance("X.509", BouncyCastleProvider.PROVIDER_NAME);
         InputStream in = new ByteArrayInputStream(pkiCaCertBytes);
         return (X509Certificate) certFactory.generateCertificate(in);
+    }
+
+    public static CertInfo getCertInfo(X509Certificate cert) throws CertificateEncodingException {
+        CertInfo certInfo = new CertInfo();
+        X500Name x500Name = new JcaX509CertificateHolder(cert).getSubject();
+        Principal p = cert.getSubjectDN();
+        Log.v(TAG,p.getName());
+
+//        RDN email = x500Name.getRDNs(BCStyle.EmailAddress)[0];
+        RDN cn = x500Name.getRDNs(BCStyle.CN)[0];
+        RDN organization = x500Name.getRDNs(BCStyle.O)[0];
+        RDN organizationUnit = x500Name.getRDNs(BCStyle.OU)[0];
+        RDN country = x500Name.getRDNs(BCStyle.C).length > 0 ? x500Name.getRDNs(BCStyle.C)[0] : null;
+        RDN locality = x500Name.getRDNs(BCStyle.L).length > 0 ? x500Name.getRDNs(BCStyle.L)[0] : null;
+        RDN state = x500Name.getRDNs(BCStyle.ST).length > 0 ?x500Name.getRDNs(BCStyle.ST)[0] : null;
+        String cnStr = cn.getFirst().getValue().toString();
+        String organizationStr = organization.getFirst().getValue().toString();
+        String organizationUnitStr = organizationUnit.getFirst().getValue().toString();
+        String countryStr = country != null ? country.getFirst().getValue().toString() : "";
+        String localityStr = locality != null ? locality.getFirst().getValue().toString() : "";
+        String stateStr = state != null ? state.getFirst().getValue().toString() : "";
+        certInfo.setCountry(countryStr);
+        certInfo.setCn(cnStr);
+        certInfo.setOrganization(organizationStr);
+        certInfo.setLocality(localityStr);
+        certInfo.setState(stateStr);
+        return certInfo;
     }
 
 }

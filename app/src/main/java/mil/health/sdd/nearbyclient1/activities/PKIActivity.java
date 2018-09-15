@@ -4,10 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -23,20 +23,23 @@ import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 
 import mil.health.sdd.nearbyclient1.PKIPreferences;
 import mil.health.sdd.nearbyclient1.R;
-import mil.health.sdd.nearbyclient1.fragments.X509CertEditFragment;
+import mil.health.sdd.nearbyclient1.fragments.X509CertFragment;
 import mil.health.sdd.nearbyclient1.helper.CSRHelper;
 import mil.health.sdd.nearbyclient1.helper.PKIHelper;
 
-public class PKIActivity extends AppCompatActivity {
+public class PKIActivity extends AppCompatActivity implements X509CertFragment.CertificateListener {
     private static final String TAG = "PKIActivity";
 
     private static final String CA_CN ="android-dha-client1.local";
     private static final String CA_CN_PATTERN ="CN=%s, O=DHA, OU=SDD";
     private static PKIPreferences pkPrefs;
     private static SharedPreferences generalPrefs;
+    X509CertFragment localCertFragment;
+    X509CertFragment caCertFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,13 +65,42 @@ public class PKIActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         } else {
-            FragmentManager fm = getSupportFragmentManager();
-            Fragment certEditFragment = new X509CertEditFragment();
-            FragmentTransaction ft1 = fm.beginTransaction();
-            ft1.add(R.id.fragmentCaCertContainer,certEditFragment);
-            ft1.commit();
+            if(pkPrefs.getSignedCert() != null){
+                FragmentManager fm = getSupportFragmentManager();
+                FragmentTransaction ft1 = fm.beginTransaction();
+                localCertFragment = new X509CertFragment();
 
-            notifyUser("Certs already setup");
+
+                try {
+                    localCertFragment.setCert(pkPrefs.getCertInfo(pkPrefs.getSignedCert()));
+                } catch (CertificateEncodingException e) {
+                    e.printStackTrace();
+                }
+
+                Log.v(TAG,"adding Fragment R.id.fragmentLocalCertContainer");
+                ft1.add(R.id.fragmentLocalCertContainer,localCertFragment);
+
+                caCertFragment = new X509CertFragment();
+
+                try {
+                    caCertFragment.setCert(pkPrefs.getCertInfo(pkPrefs.getCaCert()));
+                    Log.v(TAG,"adding Fragment R.id.fragmentCaCertContainer");
+                    ft1.add(R.id.fragmentCaCertContainer,caCertFragment);
+                } catch (CertificateEncodingException e) {
+                    e.printStackTrace();
+                } catch (CertificateException e) {
+                    e.printStackTrace();
+                } catch (NoSuchProviderException e) {
+                    e.printStackTrace();
+                }
+
+                ft1.commit();
+            } else {
+                notifyUser("Please proceed to CSR request");
+            }
+
+
+
         }
     }
 
@@ -78,6 +110,26 @@ public class PKIActivity extends AppCompatActivity {
         super.onStart();
 
     }
+
+    @Override
+    protected void onStop() {
+//        FragmentManager fm = getSupportFragmentManager();
+//        FragmentTransaction ft2 = fm.beginTransaction();
+//        if(caCertFragment != null){
+//            ft2.remove(caCertFragment);
+//        }
+//        if(localCertFragment != null){
+//            ft2.remove(localCertFragment);
+//        }
+//        ft2.commit();
+        super.onStop();
+
+    }
+
+    public void onClickDelete(){
+
+    }
+
     private void notifyUser(String msg){
 //        Snackbar.make(findViewById(R.id.pkiCoordinatorLayout), msg,
 //                Snackbar.LENGTH_SHORT).show(); //Relies on AppCompat so doesn't work
