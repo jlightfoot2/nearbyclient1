@@ -10,6 +10,7 @@
     <string name="pki_preferences_filename">pki_preferences</string>
     <string name="button_manage_pki">Manage PKI</string>
     <string name="pki_setup_isready_name">pki_setup_isready</string>
+    <string name="app_uuid_name">app_uuid</string>
     <string name="general_preferences_filename">general_preferences</string>
     <string name="pki_csr_key_name">pki_csr_key</string>
     <string name="pki_x509_signed_cert_name">pki_x509_signed_cert</string>

@@ -5,7 +5,19 @@
     >
 
         <TextView
-            android:id="@+id/textViewFragmentTitle"
+            android:id="@+id/textViewFragmentCertTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:text="Cert Title"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textViewFragmentCN"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
@@ -14,7 +26,7 @@
             android:text="CN Name"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/textViewFragmentCertTitle" />
 
         <TextView
             android:id="@+id/textViewFragmentCountry"
@@ -26,7 +38,7 @@
             android:text="Country"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewFragmentTitle" />
+            app:layout_constraintTop_toBottomOf="@+id/textViewFragmentCN" />
 
         <TextView
             android:id="@+id/textViewFragmentState"

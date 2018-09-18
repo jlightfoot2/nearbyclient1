@@ -25,6 +25,7 @@ import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 
+import mil.health.sdd.nearbyclient1.GeneralPreferencesHelper;
 import mil.health.sdd.nearbyclient1.PKIPreferences;
 import mil.health.sdd.nearbyclient1.R;
 import mil.health.sdd.nearbyclient1.fragments.X509CertFragment;
@@ -34,8 +35,8 @@ import mil.health.sdd.nearbyclient1.helper.PKIHelper;
 public class PKIActivity extends AppCompatActivity implements X509CertFragment.CertificateListener {
     private static final String TAG = "PKIActivity";
 
-    private static final String CA_CN ="android-dha-client1.local";
-    private static final String CA_CN_PATTERN ="CN=%s, O=DHA, OU=SDD";
+    private static final String CA_CN ="dha-android-client.local";
+    private static final String CA_CN_PATTERN ="CN=%s, O=DHA, OU=SDD, L=Tacoma, ST=WA, C=US";
     private static PKIPreferences pkPrefs;
     private static SharedPreferences generalPrefs;
     X509CertFragment localCertFragment;
@@ -73,6 +74,7 @@ public class PKIActivity extends AppCompatActivity implements X509CertFragment.C
 
                 try {
                     localCertFragment.setCert(pkPrefs.getCertInfo(pkPrefs.getSignedCert()));
+                    localCertFragment.setTitle("Device Certificate");
                 } catch (CertificateEncodingException e) {
                     e.printStackTrace();
                 }
@@ -84,6 +86,7 @@ public class PKIActivity extends AppCompatActivity implements X509CertFragment.C
 
                 try {
                     caCertFragment.setCert(pkPrefs.getCertInfo(pkPrefs.getCaCert()));
+                    caCertFragment.setTitle("Certificate Authority");
                     Log.v(TAG,"adding Fragment R.id.fragmentCaCertContainer");
                     ft1.add(R.id.fragmentCaCertContainer,caCertFragment);
                 } catch (CertificateEncodingException e) {
@@ -151,7 +154,12 @@ public class PKIActivity extends AppCompatActivity implements X509CertFragment.C
         Provider bcProvider = new BouncyCastleProvider();
         Security.addProvider(bcProvider);
         KeyPair kp = PKIHelper.createKeyPair();
-        String cnString = String.format(CA_CN_PATTERN, CA_CN);
+
+        GeneralPreferencesHelper gph = new GeneralPreferencesHelper(generalPrefs);
+
+        String app_uuid = gph.getUUID(getString(R.string.app_uuid_name));
+
+        String cnString = String.format(CA_CN_PATTERN, app_uuid + "." + CA_CN);
         PKCS10CertificationRequest csr = CSRHelper.generateCSR(kp,cnString);
 
         PKIPreferences pkPrefs = new PKIPreferences(this,getString(R.string.pki_preferences_filename));

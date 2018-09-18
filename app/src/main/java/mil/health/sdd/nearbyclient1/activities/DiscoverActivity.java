@@ -201,6 +201,7 @@ public class DiscoverActivity extends Activity {
                                 // We were unable to start discovering.
 
                                 Log.e(TAG,"We were unable to start discovering",e);
+                                notifyUser("We were unable to start discovering");
                             }
                         });
     }

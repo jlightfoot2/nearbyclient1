@@ -20,6 +20,7 @@ import mil.health.sdd.nearbyclient1.R;
 public class X509CertFragment extends Fragment {
     CertificateListener mCallback;
     CertInfo certInfo;
+    private String title = "";
 
     public X509CertFragment() {
 
@@ -48,7 +49,8 @@ public class X509CertFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         // Set values for view here
-        TextView tTitle = (TextView) view.findViewById(R.id.textViewFragmentTitle);
+        TextView tTitle = (TextView) view.findViewById(R.id.textViewFragmentCertTitle);
+        TextView tCN = (TextView) view.findViewById(R.id.textViewFragmentCN);
         TextView tCountry = (TextView) view.findViewById(R.id.textViewFragmentCountry);
         TextView tState = (TextView) view.findViewById(R.id.textViewFragmentState);
         TextView tLocality = (TextView) view.findViewById(R.id.textViewFragmentLocality);
@@ -60,10 +62,12 @@ public class X509CertFragment extends Fragment {
 
         // update view
 
+        tTitle.setText(this.title);
+
         if(certInfo == null){
-            tTitle.setText("Empty Cert");
+            tCN.setText("Empty Cert");
         } else {
-            tTitle.setText(certInfo.getCn());
+            tCN.setText(certInfo.getCn());
             tCountry.setText(certInfo.getCountry());
             tState.setText(certInfo.getState());
             tLocality.setText(certInfo.getLocality());
@@ -79,6 +83,9 @@ public class X509CertFragment extends Fragment {
 
     public void setCert(CertInfo certInfo){
         this.certInfo = certInfo;
+    }
+    public void setTitle(String title){
+        this.title = title;
     }
 
     public interface CertificateListener {

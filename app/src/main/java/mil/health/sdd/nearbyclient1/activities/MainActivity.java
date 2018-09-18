@@ -44,6 +44,9 @@ public class MainActivity extends Activity {
         generalPrefs = getSharedPreferences(getString(R.string.general_preferences_filename), Context.MODE_PRIVATE);
         pkiReady = generalPrefs.getBoolean(getString(R.string.pki_setup_isready_name),false);
 
+
+
+
         Button discoverButton = findViewById(R.id.buttonDiscover);
         if(pkiReady){
             discoverButton.setVisibility(View.VISIBLE);
@@ -61,6 +64,11 @@ public class MainActivity extends Activity {
         Intent mPKIIntent = new Intent(this,PKIActivity.class);
         startActivity(mPKIIntent);
     }
+
+    public void closeApp(View view){
+        System.exit(0);
+    }
+
     private void notifyUser(String msg){
 
         Context context = getApplicationContext();
